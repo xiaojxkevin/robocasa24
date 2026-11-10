@@ -96,3 +96,9 @@ Assets and Datasets: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/dee
   year={2024}
 }
 ```
+
+## Unified RoboCasa-24 evaluation
+
+The shared simulation client and policy adapters for pi0/pi05, FastWAM, X-WAM and Spatial Forcing
+are documented in [evaluation/README.md](evaluation/README.md). RoboSuite is managed as a pinned
+git submodule under `third_party/robosuite`.

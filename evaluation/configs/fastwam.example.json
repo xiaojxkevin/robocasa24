@@ -1,0 +1,14 @@
+{
+  "backend": "fastwam",
+  "project": "../FastWAM",
+  "model_config": "REPLACE_WITH_RESOLVED_ROBOCASA24_YAML",
+  "checkpoint": "REPLACE_WITH_ROBOCASA24_CHECKPOINT",
+  "dataset_stats": "REPLACE_WITH_ROBOCASA24_STATS",
+  "state_representation": "state8",
+  "action_semantics": "robosuite_raw7",
+  "image_layout_contract": "left_top_right_wrist_bottom_320x384",
+  "action_horizon": 32,
+  "num_video_frames": 9,
+  "num_inference_steps": 4,
+  "gripper_sign": 1
+}

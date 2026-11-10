@@ -1,0 +1,4 @@
+[submodule "third_party/robosuite"]
+	path = third_party/robosuite
+	url = https://github.com/ARISE-Initiative/robosuite.git
+	shallow = true

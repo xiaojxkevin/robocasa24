@@ -1,0 +1,24 @@
+{
+  "backend": "pi0",
+  "project": "../pi05-experiments",
+  "checkpoint": "REPLACE_WITH_ROBOCASA24_CHECKPOINT",
+  "train_config": "REPLACE_WITH_ROBOCASA24_TRAIN_CONFIG",
+  "state_representation": "state8",
+  "image_keys": [
+    "cam_high",
+    "cam_left_wrist",
+    "cam_right_wrist"
+  ],
+  "image_layout": "chw",
+  "action_semantics": "robosuite_raw7",
+  "action_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "gripper_sign": 1
+}

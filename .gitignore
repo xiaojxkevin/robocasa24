@@ -143,3 +143,10 @@ robocasa/models/assets/textures
 
 # midjourney-generated textures
 robocasa/models/assets/generative_textures
+
+# Local evaluation artifacts
+/eval_results/
+/evaluation/configs/*.local.json
+
+# Process-local NVIDIA EGL runtime
+/.runtime/

@@ -1,0 +1,7 @@
+{
+  "backend": "xwam",
+  "broker_endpoint": "tcp://127.0.0.1:10086",
+  "action_semantics": "robosuite_raw7",
+  "cfg": 0.0,
+  "timeout_ms": 120000
+}

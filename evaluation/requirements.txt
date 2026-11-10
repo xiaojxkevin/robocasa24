@@ -1,0 +1,6 @@
+# Install alongside the pinned simulator's own requirements in its Python 3.10 environment.
+numpy==1.23.3
+scipy==1.10.1
+pyzmq>=25,<28
+imageio>=2.31,<3
+imageio-ffmpeg>=0.4.9,<0.7
