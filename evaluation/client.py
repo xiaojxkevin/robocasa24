@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import time
 import numpy as np
-from evaluation.protocol import (ROBOCASA_COMMIT, ROBOSUITE_COMMIT, validate_actions,
+from evaluation.protocol import (ROBOCASA_COMMIT, ROBOSUITE_COMMIT, validate_actions, native_action_template,
                                  EVALUATION_SEED_BLOCK, TASK_SEED_STRIDE, benchmark_defaults,
                                  add_benchmark_arguments, resolve_evaluation_seeds)
 
@@ -52,6 +52,9 @@ def rollout(env, policy, task, episode_id, seed, horizon, replan_steps, video_pa
     env.reset()
     timings['reset_seconds'] = time.perf_counter() - tick
     base = base_transform(env)
+    low, high = env.action_spec
+    metadata = getattr(policy, 'metadata', {})
+    action_template = native_action_template(low, high, metadata.get('native_action_tail'))
     initial_state = np.asarray(env.sim.get_state().flatten())
     policy.reset({'task': task, 'episode_id': episode_id, 'seed': seed})
     step, success, calls, inference_seconds = 0, False, 0, 0.
@@ -81,7 +84,7 @@ def rollout(env, policy, task, episode_id, seed, horizon, replan_steps, video_pa
                 max_bound_violation = max(max_bound_violation, float(violation.max()))
                 if outside.any() and action_bounds == 'error':
                     raise ValueError('Native action outside controller bounds; choose controller mode explicitly to delegate saturation')
-                padded = np.zeros_like(low)
+                padded = action_template.copy()
                 padded[:7] = action
                 tick = time.perf_counter()
                 env.step(padded)
@@ -115,6 +118,7 @@ def rollout(env, policy, task, episode_id, seed, horizon, replan_steps, video_pa
                 action_bounds=action_bounds, out_of_bounds_components=out_of_bounds_components,
                 max_bound_violation=max_bound_violation, timings=timings, episode_wall_seconds=time.perf_counter() - episode_started,
                 inference_requests=inference_requests,
+                native_action_tail=action_template[7:].tolist(),
                 initial_state_sha256=hashlib.sha256(initial_state.tobytes()).hexdigest())
 
 

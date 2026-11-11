@@ -49,6 +49,8 @@ def observe(env, base, task, episode, step):
         'images': {name: env.sim.render(height=256, width=256, camera_name=name,
                                       depth=False, segmentation=False)[::-1].copy() for name in CAMERAS},
         'state8': np.concatenate([relative[:3, 3], quat, opening]).astype(np.float32),
+        # Preserve the original observation convention; do not force controller updates.
+        'state10': np.concatenate([relative[:3, 3], rotm[:, 0], rotm[:, 1], opening]).astype(np.float32),
         'state13': np.concatenate([relative[:3, 3], rotm.reshape(-1), opening]).astype(np.float32),
         'instruction': env.get_ep_meta()['lang'], 'task': task,
         'episode_id': episode, 'step_id': step,

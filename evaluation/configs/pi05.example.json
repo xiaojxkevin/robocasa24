@@ -2,14 +2,14 @@
   "backend": "pi05",
   "project": "../pi05-experiments",
   "checkpoint": "REPLACE_WITH_ROBOCASA24_CHECKPOINT",
-  "train_config": "REPLACE_WITH_ROBOCASA24_TRAIN_CONFIG",
-  "state_representation": "state8",
+  "train_config": "pi05_robocasa_3view_d4rt_full_unified_q96_bs64",
+  "state_representation": "state10",
   "image_keys": [
-    "cam_high",
-    "cam_left_wrist",
-    "cam_right_wrist"
+    "base_0_rgb",
+    "left_wrist_0_rgb",
+    "right_wrist_0_rgb"
   ],
-  "image_layout": "chw",
+  "image_layout": "hwc",
   "action_semantics": "robosuite_raw7",
   "action_indices": [
     0,
@@ -20,5 +20,16 @@
     5,
     6
   ],
-  "gripper_sign": 1
+  "gripper_sign": 1,
+  "input_contract": "robocasa_pi05_raw7_v1",
+  "image_size": 224,
+  "action_horizon": 50,
+  "num_inference_steps": 10,
+  "native_action_tail": [
+    0,
+    0,
+    0,
+    0,
+    -1
+  ]
 }

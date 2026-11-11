@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import traceback
 import zmq
-from evaluation.protocol import PROTOCOL, validate_actions
+from evaluation.protocol import PROTOCOL, validate_actions, validate_openpi_config
 
 
 def load_policy(config):
@@ -15,12 +15,13 @@ def load_policy(config):
         raise ValueError('gripper_sign must be -1 or 1')
     backend = config['backend']
     if backend != 'xwam':
-        if config.get('state_representation') not in ('state8', 'state13'):
-            raise ValueError('Declare state_representation: state8 or state13')
+        if config.get('state_representation') not in ('state8', 'state10', 'state13'):
+            raise ValueError('Declare state_representation: state8, state10 or state13')
         project = Path(config['project']).resolve()
         sys.path.insert(0, str(project))
         sys.path.insert(0, str(project / 'src'))
     if backend in ('pi0', 'pi05', 'spatial_forcing'):
+        validate_openpi_config(config)
         from evaluation.adapters.openpi import OpenPiPolicy
         return OpenPiPolicy(config)
     if backend == 'xwam':
@@ -37,9 +38,15 @@ def load_policy(config):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', required=True)
+    parser.add_argument('--checkpoint', help='Override the checkpoint in the JSON config')
+    parser.add_argument('--project', help='Override the model project directory')
     parser.add_argument('--bind', default='tcp://127.0.0.1:9100')
     args = parser.parse_args()
     config = json.loads(Path(args.config).read_text())
+    if args.checkpoint is not None:
+        config['checkpoint'] = str(Path(args.checkpoint).resolve())
+    if args.project is not None:
+        config['project'] = str(Path(args.project).resolve())
     policy = load_policy(config)
     context = zmq.Context()
     socket = context.socket(zmq.REP)
@@ -54,6 +61,8 @@ def main():
                 if method == 'metadata':
                     result = {'protocol': PROTOCOL, 'config': config,
                               'parallel_safe': config['backend'] == 'xwam'}
+                    if 'native_action_tail' in config:
+                        result['native_action_tail'] = config['native_action_tail']
                 elif method == 'reset':
                     policy.reset(request['episode'])
                     result = None
