@@ -9,7 +9,11 @@ CAMERAS = ('robot0_agentview_left', 'robot0_agentview_right', 'robot0_eye_in_han
 ROBOCASA_COMMIT = '756598a5be52e052339bb2d957426e39015c2afb'
 ROBOSUITE_COMMIT = '232ce7d4a6ed89c949a9aba024a05c8c32fdd08b'
 EEF_AXES = np.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 1.]])
+# Keep the original name/value for existing pi05 configs and run manifests.
 OPENPI_ROBOCASA_CONTRACT = 'robocasa_pi05_raw7_v1'
+OPENPI_NATIVE_CONTRACT = 'robocasa_openpi_raw7_v1'
+SPATIAL_FORCING_CONTRACT = 'robocasa_spatial_forcing_raw7_v1'
+OPENPI_NATIVE_CONTRACTS = (OPENPI_ROBOCASA_CONTRACT, OPENPI_NATIVE_CONTRACT, SPATIAL_FORCING_CONTRACT)
 OPENPI_IMAGE_KEYS = ('base_0_rgb', 'left_wrist_0_rgb', 'right_wrist_0_rgb')
 NATIVE_ACTION_TAIL = (0., 0., 0., 0., -1.)
 
@@ -26,14 +30,19 @@ def validate_actions(actions):
 def validate_openpi_config(config):
     """Validate the named training contract without importing a model runtime."""
     contract = config.get('input_contract', 'legacy')
-    if contract not in ('legacy', OPENPI_ROBOCASA_CONTRACT):
+    if contract not in ('legacy', *OPENPI_NATIVE_CONTRACTS):
         raise ValueError(f'Unknown OpenPI input_contract: {contract}')
+    if contract == SPATIAL_FORCING_CONTRACT and config.get('backend') != 'spatial_forcing':
+        raise ValueError('The Spatial Forcing contract requires backend=spatial_forcing')
+    if (config.get('backend') == 'spatial_forcing' and contract in OPENPI_NATIVE_CONTRACTS
+            and contract != SPATIAL_FORCING_CONTRACT):
+        raise ValueError('Native Spatial Forcing requires its named raw7 contract')
     keys = config['image_keys']
     if len(keys) != 3 or len(set(keys)) != 3:
         raise ValueError('image_keys must contain three distinct keys in canonical camera order')
     if config.get('image_layout', 'hwc') not in ('hwc', 'chw'):
         raise ValueError('image_layout must be hwc or chw')
-    if contract == OPENPI_ROBOCASA_CONTRACT:
+    if contract in OPENPI_NATIVE_CONTRACTS:
         expected = dict(state_representation='state10', image_layout='hwc', image_size=224,
                         action_semantics='robosuite_raw7', gripper_sign=1)
         for name, value in expected.items():
@@ -56,7 +65,7 @@ def encode_openpi(obs, config):
     up training depth, tracks or per-episode auxiliary geometry.
     """
     validate_openpi_config(config)
-    new_contract = config.get('input_contract') == OPENPI_ROBOCASA_CONTRACT
+    new_contract = config.get('input_contract') in OPENPI_NATIVE_CONTRACTS
     state = np.asarray(obs[config['state_representation']], dtype=np.float32).copy()
     if new_contract and (state.shape != (10,) or not np.isfinite(state).all()):
         raise ValueError('Expected finite state10: xyz, rotation columns 0 and 1, gripper')

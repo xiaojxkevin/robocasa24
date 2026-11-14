@@ -1,6 +1,7 @@
 """Run with the selected model project's Python; bind locally by default."""
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
 import traceback
@@ -20,6 +21,15 @@ def load_policy(config):
         project = Path(config['project']).resolve()
         sys.path.insert(0, str(project))
         sys.path.insert(0, str(project / 'src'))
+    if backend == 'spatial_forcing':
+        # Both single-server and managed replicas use the local tokenizer only.
+        cache = project.parents[2] / 'outputs/cache/openpi'
+        os.environ.setdefault('OPENPI_DATA_HOME', str(cache))
+        tokenizer = Path(os.environ['OPENPI_DATA_HOME']).expanduser() / 'big_vision/paligemma_tokenizer.model'
+        if not tokenizer.is_file():
+            raise FileNotFoundError(f'Missing offline tokenizer: {tokenizer}; set OPENPI_DATA_HOME')
+        os.environ['HF_HUB_OFFLINE'] = '1'
+        os.environ['HF_DATASETS_OFFLINE'] = '1'
     if backend in ('pi0', 'pi05', 'spatial_forcing'):
         validate_openpi_config(config)
         from evaluation.adapters.openpi import OpenPiPolicy
@@ -60,7 +70,7 @@ def main():
                 method = request['method']
                 if method == 'metadata':
                     result = {'protocol': PROTOCOL, 'config': config,
-                              'parallel_safe': config['backend'] == 'xwam'}
+                              'parallel_safe': config['backend'] == 'xwam' or getattr(policy, 'parallel_safe', False)}
                     if 'native_action_tail' in config:
                         result['native_action_tail'] = config['native_action_tail']
                 elif method == 'reset':

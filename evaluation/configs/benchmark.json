@@ -2,7 +2,7 @@
   "name": "robocasa24_eval_v1",
   "tasks": ["all"],
   "trials_per_task_per_seed": 50,
-  "evaluation_seeds": [0, 1],
+  "evaluation_seeds": [0, 1, 2],
   "replan_steps": 32,
   "environment_seed_scheme": "block-v1",
   "evaluation_seed_block": 10000000,

@@ -1,0 +1,35 @@
+{
+  "backend": "pi0",
+  "project": "../pi05-experiments",
+  "checkpoint": "/2025233210/xiaojx/pi05-experiments/checkpoints/pi0_robocasa_3view_d4rt_full_unified_q96_bs64/pi0_robocasa_3view_d4rt_q96_bs64/19999",
+  "train_config": "pi0_robocasa_3view_d4rt_full_unified_q96_bs64",
+  "state_representation": "state10",
+  "image_keys": [
+    "base_0_rgb",
+    "left_wrist_0_rgb",
+    "right_wrist_0_rgb"
+  ],
+  "image_layout": "hwc",
+  "action_semantics": "robosuite_raw7",
+  "action_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "gripper_sign": 1,
+  "input_contract": "robocasa_openpi_raw7_v1",
+  "image_size": 224,
+  "action_horizon": 50,
+  "num_inference_steps": 10,
+  "native_action_tail": [
+    0,
+    0,
+    0,
+    0,
+    -1
+  ]
+}

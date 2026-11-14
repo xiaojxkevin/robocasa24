@@ -1,8 +1,4 @@
-"""Deferred interface tests; no model/checkpoint required.
-
-Not executed while training is active. These checks cover the new named
-contract without changing the legacy policy format.
-"""
+"""CPU interface tests for native pi05 actions and isolated episode sampling."""
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -86,18 +82,25 @@ class Pi05ContractTests(unittest.TestCase):
         adapter = OpenPiPolicy.__new__(OpenPiPolicy)
         adapter.config = config(); adapter.native_robocasa = True
         adapter.horizon = 50; adapter.action_dim = 32
-        adapter.noise_rng = np.random.default_rng(0)
+        adapter.episode_rngs = {}
         commands = np.linspace(-1, 1, 350, dtype=np.float32).reshape(50, 7)
         noise = []
         def infer(obs, **kwargs):
             noise.append(kwargs['noise'].copy())
             return {'actions': commands.copy()}
         adapter.policy = SimpleNamespace(infer=infer)
+        episode = {'task': 'test', 'episode_id': 7, 'seed': 7}
+        other = {'task': 'test', 'episode_id': 8, 'seed': 8}
         with patch('evaluation.adapters.openpi.encode_openpi', return_value={}):
-            adapter.reset({'seed': 7}); result = adapter.predict({})
-            adapter.reset({'seed': 7}); adapter.predict({})
+            adapter.reset(episode); result = adapter.predict(episode)
+            adapter.predict(episode)
+            adapter.reset(episode); adapter.predict(episode)
+            adapter.reset(other); adapter.predict(other)
+            adapter.predict(episode)
         np.testing.assert_array_equal(result, commands)
-        np.testing.assert_array_equal(noise[0], noise[1])
+        np.testing.assert_array_equal(noise[0], noise[2])
+        np.testing.assert_array_equal(noise[1], noise[4])
+        self.assertFalse(np.array_equal(noise[0], noise[3]))
         self.assertEqual(noise[0].shape, (50, 32))
 
 

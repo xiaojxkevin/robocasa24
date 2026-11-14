@@ -74,3 +74,42 @@ Compact validation artifacts remain under `eval_results/h20_multigpu_smoke/`: gl
 manifest, startup/evaluation timing, warmup differences and memory inventory. Duplicated shard
 outputs and successful service logs were deleted after verification. All owned processes exited
 and all eight GPUs returned to idle. CPU test suite: 16 tests passed.
+
+## pi05 + D4RT action integration and shared workers (2026-11-11)
+
+Checkpoint: `../pi05-experiments/checkpoints/pi05_robocasa_3view_d4rt_full_unified_q96_bs64/robocasa_3view_d4rt_q96_bs64/19999`.
+One pi05 service on H20 GPU 0, NVIDIA EGL, K=32, 10 denoising steps,
+native controller bounds mode, stride-4 video. Task: CloseDoubleDoor,
+evaluation seed 0, environment seeds 1100000 and 1100001.
+
+| Environment seed | Success | Steps | Inference calls | Out-of-bounds components | Maximum bound excess |
+|---|---|---:|---:|---:|---:|
+| 1100000 | Yes | 374 | 12 | 290 | 0.0626191 |
+| 1100001 | Yes | 401 | 13 | 250 | 0.1957552 |
+
+Both episodes succeeded with one and two simulator workers. Across all repeats,
+per-seed initial-state hashes, success, steps, inference counts, native action tail,
+bound diagnostics, and encoded MP4 SHA-256 hashes matched exactly. Bounds excess
+was delegated to the controller's existing saturation logic. This validates these
+two instances; it is not an estimate of full benchmark success rate.
+
+| Warm service, same two episodes and video settings | Wall seconds |
+|---|---:|
+| One simulator worker | 55.21 |
+| Two simulator workers | 30.64 |
+
+Observed speedup: 1.80x, one measurement per setting. Model loading and first-call
+compilation excluded; client startup, environment creation, rendering and teardown
+included. Inference remains serialized; simulator processes overlap. First-call
+compilation in the initial single-episode run took approximately 13.69 s, with
+subsequent request round trips around 0.11–0.12 s.
+
+The native pi05 adapter isolates sampling RNGs by task/episode ID. Enable shared
+workers with `WORKERS=2 bash evaluation/run_pi05_client.sh ...`. Other OpenPI
+contracts retain their existing single-worker restriction. All 28 evaluation CPU
+tests passed, including sampling invariance under interleaved episode requests.
+
+Local detailed report: `eval_results/pi05_d4rt_19999_validation.json`.
+Videos and manifests: `eval_results/pi05_d4rt_19999_single/`,
+`eval_results/pi05_d4rt_19999_workers2/`, `eval_results/pi05_d4rt_19999_serial2_warm/`,
+and `eval_results/pi05_d4rt_19999_workers2_warm/`.

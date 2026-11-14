@@ -13,19 +13,20 @@ class BenchmarkProtocolTests(unittest.TestCase):
         self.registry = json.loads((ROOT / 'evaluation/configs/tasks.json').read_text())
         self.tasks = list(self.registry)
 
-    def test_defaults_are_24_tasks_50_trials_on_two_seeds(self):
+    def test_defaults_are_24_tasks_50_trials_on_three_seeds(self):
         parser = argparse.ArgumentParser()
         add_benchmark_arguments(parser)
         args = parser.parse_args([])
         self.assertEqual(args.tasks, ['all'])
         self.assertEqual(args.episodes, 50)
-        self.assertEqual(resolve_evaluation_seeds(args), [0, 1])
+        self.assertEqual(resolve_evaluation_seeds(args), [0, 1, 2])
         self.assertEqual(args.replan_steps, 32)
         specs = episode_specs(self.tasks, args.episodes, resolve_evaluation_seeds(args), self.registry)
-        self.assertEqual(len(specs), 2400)
-        self.assertEqual(len({row['seed'] for row in specs}), 2400)
+        self.assertEqual(len(specs), 3600)
+        self.assertEqual(len({row['seed'] for row in specs}), 3600)
         self.assertEqual(sum(row['evaluation_seed'] == 0 for row in specs), 1200)
         self.assertEqual(sum(row['evaluation_seed'] == 1 for row in specs), 1200)
+        self.assertEqual(sum(row['evaluation_seed'] == 2 for row in specs), 1200)
         a = {row['seed'] for row in specs if row['evaluation_seed'] == 0}
         b = {row['seed'] for row in specs if row['evaluation_seed'] == 1}
         self.assertFalse(a & b)
